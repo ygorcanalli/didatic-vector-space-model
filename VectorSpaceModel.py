@@ -9,6 +9,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from math import sqrt
 #Pretty printer, imprime matrizes de forma mais legível
 from pprint import pprint
+from numpy import argsort
 
 def matriz_termo_documento(vetorizador, documentos):
 	# Aqui o vetorizador identifica todas as palavras que vai precisar e o tamanho da matriz resultante (#documentos x #palavras)
@@ -70,6 +71,19 @@ def realiza_consulta(matriz_termo_documento, q):
 		
 	return similaridades
 		
+
+def top_k_resultados(documentos, similaridades):
+	# O argsort realiza a ordenação de um vetor, mas retorna os índices correspondentes à ordem
+	indices_por_ordem_de_relevancia = argsort(resultado)
+	documentos_por_ordem_de_relevacia = []
+	
+	# A ordenação foi feita de modo crescente, mas queremos os itens com maior similaridade primeiro
+	for indice in reversed(indices_por_ordem_de_relevancia.tolist()):
+		# Guarda uma tupla contendo o índice do documento, o conteúdo, e sua similaridade
+		tupla = (indice, documentos[indice], similaridades[indice])
+		documentos_por_ordem_de_relevacia.append(tupla)
+		
+	return documentos_por_ordem_de_relevacia
 		
 vetorizador = CountVectorizer()
 
@@ -91,7 +105,12 @@ queries.append('temor do Senhor')
 
 
 queries_vetorizadas = vetoriza_queries(vetorizador, queries)
+i = 0
 for q in queries_vetorizadas:
 	resultado = realiza_consulta(matriz, q)
-	print("\nSimilaridades para query:")
-	pprint(resultado)
+	print("\nResultados para a query %d ('%s'):" % (i, queries[i]))
+	for r in top_k_resultados(documentos, resultado):
+		print(r)
+		
+	# O python não aceita a sintaxe i++	
+	i += 1
